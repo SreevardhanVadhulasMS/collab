@@ -42,16 +42,16 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: process.env.NODE_ENV === "production",
+            secure: false,  
             httpOnly: true,
             sameSite: "strict",
-            maxAge: 1000 * 60 * 60 * 24,
+            maxAge: 1000 * 60 * 60 * 24, 
         },
     })
 );
 
 app.use((req, res, next) => {
-    console.log(" Current session:", req.session);
+    console.log("🔍 Current session:", req.session);
     next();
 });
 
@@ -81,7 +81,7 @@ app.post("/register", async (req, res) => {
 
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
-    console.log(" Login attempt:", email); 
+    console.log("🔍 Login attempt:", email);
 
     try {
         const result = await client.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -99,44 +99,24 @@ app.post("/login", async (req, res) => {
         }
 
         req.session.user = { id: user.id, name: user.name, email: user.email };
-        console.log(" User logged in:", req.session.user);
-        res.json({ success: true, redirectUrl: "/home" });
+        req.session.save(err => {
+            if (err) {
+                console.error(" Session save error:", err);
+                return res.status(500).json({ success: false, message: "Session error." });
+            }
+            console.log(" User logged in:", req.session.user);
+            res.json({ success: true, redirectUrl: "/home" });
+        });
+
     } catch (err) {
         console.error(" Error logging in:", err);
         res.status(500).json({ success: false, message: "Error logging in." });
     }
 });
 
-app.get("/home", ensureAuthenticated, (req, res) => {
-    res.render("home", { user: req.session.user });
-});
-
-app.get("/create", ensureAuthenticated, (req, res) => {
-    res.render("create", { user: req.session.user });
-});
-
-app.post("/create-post", ensureAuthenticated, async (req, res) => {
-    const { title, name, date, contact, timeline, description } = req.body;
-
-    if (!title || !name || !date || !contact || !timeline || !description) {
-        return res.status(400).send("All fields are required.");
-    }
-
-    try {
-        await client.query(
-            "INSERT INTO posts (user_id, title, name, date, contact, timeline, description, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())",
-            [req.session.user.id, title, name, date, contact, timeline, description]
-        );
-        res.redirect("/home");
-    } catch (err) {
-        console.error(" Error creating post:", err);
-        res.status(500).send("Error creating post.");
-    }
-});
-
 app.get("/fetch-posts", ensureAuthenticated, async (req, res) => {
     try {
-        console.log(" Fetching posts for user:", req.session.user.id);
+        console.log("🔍 Fetching posts for user:", req.session.user.id);
         const result = await client.query(
             "SELECT id, title, date, name, contact, timeline, description FROM posts WHERE user_id = $1 ORDER BY created_at DESC",
             [req.session.user.id]
@@ -148,34 +128,10 @@ app.get("/fetch-posts", ensureAuthenticated, async (req, res) => {
     }
 });
 
-app.get("/fetch-all-posts", ensureAuthenticated, async (req, res) => {
-    try {
-        const result = await client.query(
-            "SELECT posts.id, posts.title, posts.date, posts.name, posts.contact, posts.timeline, posts.description, users.name AS posted_by FROM posts INNER JOIN users ON posts.user_id = users.id ORDER BY posts.created_at DESC"
-        );
-        res.json(result.rows);
-    } catch (err) {
-        console.error(" Error fetching all posts:", err);
-        res.status(500).json({ error: "Error fetching posts", details: err.message });
-    }
-});
-
-app.post("/delete-post", ensureAuthenticated, async (req, res) => {
-    const { postId } = req.body;
-    if (!postId) return res.status(400).send("Post ID is required.");
-
-    try {
-        await client.query("DELETE FROM posts WHERE id = $1 AND user_id = $2", [postId, req.session.user.id]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error(" Error deleting post:", err);
-        res.status(500).send("Error deleting post.");
-    }
-});
-
 app.get("/logout", (req, res) => {
     req.session.destroy(() => res.redirect("/"));
 });
+
 
 app.get("/session-check", (req, res) => {
     console.log(" Checking session:", req.session);
