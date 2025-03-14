@@ -8,10 +8,9 @@ import { Strategy as DiscordStrategy } from "passport-discord";
 import { Strategy as GitHubStrategy } from "passport-github";
 import pkg from "pg";
 import dotenv from "dotenv";
-import pgSession from "connect-pg-simple";
+import connectPgSimple from "connect-pg-simple";  
 
-
-dotenv.config();
+dotenv.config(); 
 
 const { Client } = pkg;
 const app = express();
@@ -67,16 +66,17 @@ app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/js", express.static(path.join(__dirname, "js")));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
+const PgSession = connectPgSimple(session);
 app.use(
     session({
-        store: new (pgSession(session))({
+        store: new PgSession({
             pool: client, 
             tableName: "session"
         }),
         secret: process.env.SESSION_SECRET || "default_secret",
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: true, maxAge: 1000 * 60 * 60 * 24 } 
+        cookie: { secure: process.env.NODE_ENV === "production", maxAge: 1000 * 60 * 60 * 24 } 
     })
 );
 
@@ -88,10 +88,7 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.GOOGLE_CALLBACK_URL
 }, async (accessToken, refreshToken, profile, done) => {
-    const userId = profile.id;
-    const name = profile.displayName;
-    const email = profile.emails[0].value;
-    await saveUserIfNotExists(userId, name, email);
+    await saveUserIfNotExists(profile.id, profile.displayName, profile.emails[0].value);
     return done(null, profile);
 }));
 
@@ -101,10 +98,8 @@ passport.use(new DiscordStrategy({
     callbackURL: process.env.DISCORD_CALLBACK_URL,
     scope: ["identify", "email"]
 }, async (accessToken, refreshToken, profile, done) => {
-    const userId = profile.id;
-    const name = profile.username;
-    const email = profile.email || `${userId}@discord.com`;
-    await saveUserIfNotExists(userId, name, email);
+    const email = profile.email || `${profile.id}@discord.com`;
+    await saveUserIfNotExists(profile.id, profile.username, email);
     return done(null, profile);
 }));
 
@@ -114,10 +109,8 @@ passport.use(new GitHubStrategy({
     callbackURL: process.env.GITHUB_CALLBACK_URL,
     scope: ["user:email"]
 }, async (accessToken, refreshToken, profile, done) => {
-    const userId = profile.id;
-    const name = profile.displayName || profile.username;
-    const email = profile.emails?.[0]?.value || `${userId}@github.com`;
-    await saveUserIfNotExists(userId, name, email);
+    const email = profile.emails?.[0]?.value || `${profile.id}@github.com`;
+    await saveUserIfNotExists(profile.id, profile.displayName || profile.username, email);
     return done(null, profile);
 }));
 
@@ -145,6 +138,7 @@ app.get("/", (req, res) => res.render("index"));
 app.get("/about", (req, res) => res.render("about"));
 app.get("/login", (req, res) => res.render("login"));
 app.get("/create", ensureAuthenticated, (req, res) => res.render("create", { user: req.user }));
+app.get("/home", ensureAuthenticated, (req, res) => res.render("home", { user: req.user })); // ✅ Ensuring home route exists
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => res.redirect("/home"));
@@ -182,6 +176,4 @@ app.get("/fetch-all-posts", async (req, res) => {
     }
 });
 
-app.listen(PORT, () => console.log(`🚀 Server running on port: ${PORT}`));
-console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
-console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET);
+app.listen(PORT, () => console.log(` Server running on port: ${PORT}`));
