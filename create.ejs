@@ -325,6 +325,27 @@ function fetchPosts() {
         })
         .catch(error => console.error(" Error fetching posts:", error));
 }
+function deletePost(postId) {
+    console.log(" Deleting post:", postId); 
+
+    fetch("/delete-post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId }) 
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log(" Post deleted successfully");
+            fetchPosts(); 
+        } else {
+            console.error(" Error:", data.message);
+            alert("Failed to delete post");
+        }
+    })
+    .catch(error => console.error(" Error deleting post:", error));
+}
+
 
     </script>
 </body>

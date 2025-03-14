@@ -181,16 +181,26 @@ app.get("/fetch-posts", ensureAuthenticated, async (req, res) => {
 
 app.post("/delete-post", ensureAuthenticated, async (req, res) => {
     const { postId } = req.body;
-    if (!postId) return res.status(400).send("Post ID is required.");
+    console.log(" Received request to delete post:", postId, "by user:", req.session.user.id);
+
+    if (!postId) return res.status(400).json({ success: false, message: "Post ID is required." });
 
     try {
-        await client.query("DELETE FROM posts WHERE id = $1 AND user_id = $2", [postId, req.session.user.id]);
+        const result = await client.query("DELETE FROM posts WHERE id = $1 AND user_id = $2 RETURNING *", [postId, req.session.user.id]);
+
+        if (result.rowCount === 0) {
+            console.log(" Post not found or unauthorized delete attempt");
+            return res.status(403).json({ success: false, message: "Post not found or unauthorized." });
+        }
+
+        console.log(" Post deleted successfully:", postId);
         res.json({ success: true });
     } catch (err) {
-        console.error("Error deleting post:", err);
-        res.status(500).send("Error deleting post.");
+        console.error(" Error deleting post:", err);
+        res.status(500).json({ success: false, message: "Error deleting post." });
     }
 });
+
 
 app.get("/logout", (req, res) => {
     req.session.destroy(() => res.redirect("/"));
