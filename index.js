@@ -26,7 +26,8 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.set("view engine", "ejs");
-app.set("views", __dirname);
+app.set("views", path.join(__dirname, "views"));
+
 
 app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/js", express.static(path.join(__dirname, "js")));
@@ -51,7 +52,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-    console.log("🔍 Current session:", req.session);
+    console.log(" Current session:", req.session);
     next();
 });
 
@@ -81,7 +82,7 @@ app.post("/register", async (req, res) => {
 
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
-    console.log("🔍 Login attempt:", email);
+    console.log(" Login attempt:", email);
 
     try {
         const result = await client.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -114,9 +115,17 @@ app.post("/login", async (req, res) => {
     }
 });
 
+app.get("/home", ensureAuthenticated, (req, res) => {
+    res.render("home", { user: req.session.user });
+});
+
+app.get("/create", ensureAuthenticated, (req, res) => {
+    res.render("create", { user: req.session.user });
+});
+
 app.get("/fetch-posts", ensureAuthenticated, async (req, res) => {
     try {
-        console.log("🔍 Fetching posts for user:", req.session.user.id);
+        console.log(" Fetching posts for user:", req.session.user.id);
         const result = await client.query(
             "SELECT id, title, date, name, contact, timeline, description FROM posts WHERE user_id = $1 ORDER BY created_at DESC",
             [req.session.user.id]
@@ -132,9 +141,8 @@ app.get("/logout", (req, res) => {
     req.session.destroy(() => res.redirect("/"));
 });
 
-
 app.get("/session-check", (req, res) => {
-    console.log(" Checking session:", req.session);
+    console.log("🔍 Checking session:", req.session);
     res.json(req.session);
 });
 
