@@ -10,7 +10,7 @@ import pkg from "pg";
 import dotenv from "dotenv";
 import connectPgSimple from "connect-pg-simple";  
 
-dotenv.config(); 
+dotenv.config();
 
 const { Client } = pkg;
 const app = express();
@@ -22,8 +22,8 @@ const client = new Client({
 });
 
 client.connect()
-    .then(() => console.log(" Connected to Neon PostgreSQL"))
-    .catch(err => console.error(" Database connection error:", err.stack));
+    .then(() => console.log(" ✅ Connected to Neon PostgreSQL"))
+    .catch(err => console.error(" ❌ Database connection error:", err.stack));
 
 const createTables = async () => {
     try {
@@ -46,9 +46,9 @@ const createTables = async () => {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log(" Tables checked and created if not existing.");
+        console.log(" ✅ Tables checked and created if not existing.");
     } catch (err) {
-        console.error(" Error creating tables:", err);
+        console.error(" ❌ Error creating tables:", err);
     }
 };
 
@@ -82,6 +82,22 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+    console.log("  Serializing User:", user);
+    done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+    console.log("  Deserializing User:", user);
+    done(null, user);
+});
+
+const ensureAuthenticated = (req, res, next) => {
+    console.log(" Checking authentication:", req.isAuthenticated());
+    if (req.isAuthenticated()) return next();
+    res.redirect("/login");
+};
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
@@ -119,35 +135,30 @@ const saveUserIfNotExists = async (userId, name, email) => {
         const userExists = await client.query("SELECT * FROM users WHERE id = $1", [userId]);
         if (userExists.rows.length === 0) {
             await client.query("INSERT INTO users (id, name, email) VALUES ($1, $2, $3)", [userId, name, email]);
-            console.log(" New user added:", name);
+            console.log("  New user added:", name);
         }
     } catch (err) {
-        console.error(" Error saving user:", err);
+        console.error("  Error saving user:", err);
     }
 };
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
-
-const ensureAuthenticated = (req, res, next) => {
-    if (req.isAuthenticated()) return next();
-    res.redirect("/login");
-};
-
-app.get("/", (req, res) => res.render("index"));
-app.get("/about", (req, res) => res.render("about"));
-app.get("/login", (req, res) => res.render("login"));
-app.get("/create", ensureAuthenticated, (req, res) => res.render("create", { user: req.user }));
-app.get("/home", ensureAuthenticated, (req, res) => res.render("home", { user: req.user })); // ✅ Ensuring home route exists
-
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => res.redirect("/home"));
+app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => {
+    console.log("Google Authentication Successful:", req.user);
+    res.redirect("/home");
+});
 
 app.get("/auth/discord", passport.authenticate("discord"));
-app.get("/auth/discord/callback", passport.authenticate("discord", { failureRedirect: "/login" }), (req, res) => res.redirect("/home"));
+app.get("/auth/discord/callback", passport.authenticate("discord", { failureRedirect: "/login" }), (req, res) => {
+    console.log("Discord Authentication Successful:", req.user);
+    res.redirect("/home");
+});
 
 app.get("/auth/github", passport.authenticate("github"));
-app.get("/auth/github/callback", passport.authenticate("github", { failureRedirect: "/login" }), (req, res) => res.redirect("/home"));
+app.get("/auth/github/callback", passport.authenticate("github", { failureRedirect: "/login" }), (req, res) => {
+    console.log(" GitHub Authentication Successful:", req.user);
+    res.redirect("/home");
+});
 
 app.get("/logout", (req, res, next) => {
     req.logout(err => {
@@ -156,12 +167,21 @@ app.get("/logout", (req, res, next) => {
     });
 });
 
+app.get("/", (req, res) => res.render("index"));
+app.get("/about", (req, res) => res.render("about"));
+app.get("/login", (req, res) => res.render("login"));
+app.get("/create", ensureAuthenticated, (req, res) => res.render("create", { user: req.user }));
+app.get("/home", ensureAuthenticated, (req, res) => {
+    console.log(" Redirecting to home with user:", req.user);
+    res.render("home", { user: req.user });
+});
+
 app.get("/fetch-posts", ensureAuthenticated, async (req, res) => {
     try {
         const result = await client.query("SELECT * FROM posts WHERE user_id = $1", [req.user.id]);
         res.json(result.rows);
     } catch (err) {
-        console.error(" Error fetching posts:", err);
+        console.error("  Error fetching posts:", err);
         res.status(500).send("Error fetching posts");
     }
 });
@@ -171,7 +191,7 @@ app.get("/fetch-all-posts", async (req, res) => {
         const result = await client.query("SELECT posts.*, users.name AS posted_by FROM posts INNER JOIN users ON posts.user_id = users.id ORDER BY posts.created_at DESC");
         res.json(result.rows);
     } catch (err) {
-        console.error(" Error fetching all posts:", err);
+        console.error("  Error fetching all posts:", err);
         res.status(500).send("Error fetching posts");
     }
 });
