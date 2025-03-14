@@ -34,6 +34,7 @@ app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/js", express.static(path.join(__dirname, "js")));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
+
 const PgSession = connectPgSimple(session);
 app.use(
     session({
