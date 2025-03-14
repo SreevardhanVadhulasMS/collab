@@ -8,12 +8,33 @@ import { Strategy as DiscordStrategy } from "passport-discord";
 import { Strategy as GitHubStrategy } from "passport-github";
 import pkg from "pg";
 import dotenv from "dotenv";
+import pgSession from "connect-pg-simple";
 
+app.use(
+    session({
+        store: new pgSession({
+            pool: client, 
+            tableName: "session"
+        }),
+        secret: process.env.SESSION_SECRET || "default_secret",
+        resave: false,
+        saveUninitialized: false,
+        cookie: { secure: true, maxAge: 1000 * 60 * 60 * 24 } 
+    })
+);
 dotenv.config();
 
 const { Client } = pkg;
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET || "default_secret", 
+        resave: false,
+        saveUninitialized: false
+    })
+);
+
 
 
 const __filename = fileURLToPath(import.meta.url);
