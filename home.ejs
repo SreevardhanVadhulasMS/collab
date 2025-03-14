@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Posts - COLLAB</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: #f5f5f5;
+            color: black;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 20px 15px;
+            background: rgba(41, 40, 40, 0.3);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .title {
+            font-size: 2.5vw;
+            font-weight: 700;
+            text-decoration: none;
+            color: black;
+            text-align: center;
+        }
+
+        .toggle-btn {
+            font-size: 24px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: none;
+            position: absolute;
+            left: 15px;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: gray;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 80px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px;
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: #1f1f1f;
+        }
+
+        .posts-container {
+            width: 90%;
+            max-width: 900px;
+            margin: 100px auto 50px;
+            padding: 20px;
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 12px;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .post {
+            width: 100%;
+            background: rgba(50, 50, 50, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
+            text-align: left;
+        }
+
+        .post h3 {
+            font-size: 22px;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .post p, .post small {
+            font-size: 18px;
+            color: #ddd;
+            margin-bottom: 10px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .toggle-btn {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .posts-container {
+                width: 95%;
+                margin-left: 0;
+            }
+
+            .post {
+                padding: 15px;
+            }
+
+            .title {
+                font-size: 4vw;
+            }
+        }
+        @media screen and (max-width: 768px) {
+    .posts-container h2 {
+        font-size: 20px;
+    }
+
+    .post h3 {
+        font-size: 18px;
+    }
+
+    .post p, .post small {
+        font-size: 16px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .posts-container h2 {
+        font-size: 18px;
+    }
+
+    .post h3 {
+        font-size: 16px;
+    }
+
+    .post p, .post small {
+        font-size: 14px;
+    }
+}
+.posts-container {
+    width: 80%;
+    max-width: 900px;
+    margin: 100px auto 50px;
+    padding: 40px; 
+    background: rgba(20, 20, 20, 0.9);
+    border-radius: 12px;
+    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+    text-align: center;
+}
+
+
+@media screen and (max-width: 768px) {
+    .posts-container {
+        width: 90%;
+        padding: 30px; 
+
+    .post {
+        padding: 20px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .posts-container {
+        width: 95%;
+        padding: 20px; 
+    }
+
+    .post {
+        padding: 15px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <a class="title">COLLAB.</a>
+    </header>
+
+    <div class="sidebar" id="sidebar">
+        <a href="home">All posts</a>
+        <a href="create">My posts</a>
+        <a href="/logout">Logout</a>
+    </div>
+
+    <div class="posts-container">
+        <h2 style="color: rgb(221, 220, 220); text-align: center; margin-bottom: 20px;">All Posts</h2>
+        <div id="postList" class="post-list">
+            <p style="color: white; text-align: center;">Loading posts...</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchPosts();
+        });
+
+        function fetchPosts() {
+            fetch("/fetch-all-posts")
+                .then(response => response.json())
+                .then(posts => {
+                    const postList = document.getElementById("postList");
+                    postList.innerHTML = ""; 
+
+                    posts.forEach(post => {
+                        const div = document.createElement("div");
+                        div.classList.add("post");
+                        div.innerHTML = `
+                            <h3>${post.title}</h3>
+                            <p><strong>Date of post:</strong> ${new Date(post.date).toLocaleDateString()}</p>
+                            <p><strong>Name:</strong> ${post.name}</p>
+                            <p><strong>Contact:</strong> ${post.contact}</p>
+                            <p><strong>Timeline:</strong> ${post.timeline}</p>
+                            <p><strong>Description:</strong> ${post.description}</p>
+                            <p><i>Posted by: ${post.posted_by}</i></p>
+                        `;
+                        postList.appendChild(div);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching posts:", error);
+                    document.getElementById("postList").innerHTML = "<p style='color: black;'>Error loading posts.</p>";
+                });
+        }
+    </script>
+</body>
+</html>
