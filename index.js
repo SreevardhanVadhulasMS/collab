@@ -39,18 +39,12 @@ const PgSession = connectPgSimple(session);
 app.use(
     session({
         store: new PgSession({
-            pool: client,
-            tableName: "session"
+            conString: process.env.DATABASE_URL,
         }),
         secret: process.env.SESSION_SECRET || "default_secret",
         resave: false,
         saveUninitialized: false,
-        cookie: {
-            secure: process.env.NODE_ENV === "production", 
-            sameSite: "None",
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000 
-        }
+        cookie: { secure: process.env.NODE_ENV === "production", maxAge: 1000 * 60 * 60 * 24 }
     })
 );
 app.use((req, res, next) => {
