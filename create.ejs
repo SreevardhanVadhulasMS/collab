@@ -65,7 +65,7 @@
         }
 
         .sidebar.active {
-            left: 0; 
+            left: 0;
         }
 
         .toggle-btn {
@@ -75,6 +75,10 @@
             color: white;
             cursor: pointer;
             margin-left: 15px;
+            position: absolute;
+            left: 15px;
+            top: 20px;
+            z-index: 1100;
         }
 
         .main-content {
@@ -147,108 +151,51 @@
         .btn:hover {
             background: #333;
         }
-.sidebar {
-    width: 250px;
-    height: 100vh;
-    background: gray;
-    position: fixed;
-    top: 0;
-    left: -250px;  
-    padding-top: 80px;
-    transition: left 0.3s ease-in-out;
-}
 
-.sidebar a {
-    display: block;
-    padding: 15px;
-    color: white;
-    text-decoration: none;
-    transition: 0.3s;
-}
+        .post-list {
+            list-style: none;
+            padding: 0;
+        }
 
-.sidebar a:hover {
-    background: #1f1f1f;
-}
+        .post-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
 
-.sidebar.active {
-    left: 0;  
-}
+        .post-content {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+        }
 
-@media screen and (min-width: 768px) {
-    .sidebar {
-        left: 0;  
-    }
-}
+        .delete-btn {
+            background: darkred;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
 
-.toggle-btn {
-    font-size: 24px;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    margin-left: 15px;
-    position: absolute;
-    left: 15px;
-    top: 20px; 
-    z-index: 1100;
-}
-
-.main-content {
-    margin-left: 0;
-    padding: 100px 20px;
-}
-.post-list {
-    list-style: none;
-    padding: 0;
-}
-
-.post-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.post-content {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    align-items: center;
-}
-
-.delete-btn {
-    background: darkred;
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-.delete-btn:hover {
-    background: rgb(64, 60, 60);
-}
-
-
-@media screen and (min-width: 768px) {
-    .main-content {
-        margin-left: 260px;
-    }
-}
-
+        .delete-btn:hover {
+            background: rgb(64, 60, 60);
+        }
 
         @media screen and (max-width: 768px) {
             .sidebar {
-                left: -250px; 
+                left: -250px;
             }
 
             .sidebar.active {
-                left: 0; 
+                left: 0;
             }
 
             .main-content {
@@ -279,8 +226,8 @@
     </header>
 
     <div class="sidebar" id="sidebar">
-        <a href="home">All posts</a>
-        <a href="create">My posts</a>
+        <a href="/home">All posts</a>
+        <a href="/create">My posts</a>
         <a href="/logout">Logout</a>
     </div>
 
@@ -288,27 +235,29 @@
         <div class="content-container">
             <div class="section">
                 <h2 style="color: black;">Create New Post</h2>
-                <form class="form-container" action="/submit" method="POST">
+                <form class="form-container" action="/create-post" method="POST">
                     <label for="title">Project Title:</label>
                     <input type="text" id="title" name="title" placeholder="Enter title" required>
-
+                
                     <label for="name">Name:</label>
                     <input type="text" id="name" name="name" placeholder="Enter your name" required>
-
-                    <label for="date">Date of post:</label>
+                
+                    <label for="date">Date of Post:</label>
                     <input type="date" id="date" name="date" required>
-
+                
                     <label for="contact">Contact Number:</label>
                     <input type="text" id="contact" name="contact" placeholder="Enter contact number" required>
-
+                
                     <label for="timeline">Project Timeline:</label>
                     <input type="text" id="timeline" name="timeline" placeholder="Enter project timeline" required>
-
+                
                     <label for="description">Project Description:</label>
                     <textarea id="description" name="description" placeholder="Enter project details" required></textarea>
-
+                
                     <button type="submit" class="btn">Post</button>
                 </form>
+                
+              
             </div>
 
             <div class="section">
@@ -324,33 +273,42 @@
             sidebar.classList.toggle("active");  
         }
 
+        
         document.addEventListener("DOMContentLoaded", function () {
-            fetchPosts();
-        });
+    fetchPosts();
+});
 
-        function fetchPosts() {
+function fetchPosts() {
     fetch("/fetch-posts")
         .then(response => response.json())
         .then(posts => {
-            console.log("Fetched posts:", posts);
             const postList = document.getElementById("postList");
             postList.innerHTML = ""; 
 
+            if (posts.length === 0) {
+                postList.innerHTML = "<p style='color: black; text-align: center;'>No posts found.</p>";
+                return;
+            }
+
             posts.forEach(post => {
                 const li = document.createElement("li");
-                li.classList.add("post-item");  
+                li.classList.add("post-item");
 
                 li.innerHTML = `
                     <div class="post-content">
                         <strong>${post.title}</strong>  
+                        <p>${new Date(post.date).toLocaleDateString()}</p>
                         <button class="delete-btn" onclick="deletePost('${post.id}')">Delete</button>
                     </div>
                 `;
                 postList.appendChild(li);
             });
         })
-        .catch(error => console.error("Error fetching posts:", error));
+        .catch(error => console.error(" Error fetching posts:", error));
 }
+
+
+
 
         function deletePost(postId) {
             fetch("/delete-post", {
@@ -358,14 +316,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ postId })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    fetchPosts();
-                } else {
-                    alert("Failed to delete post");
-                }
-            })
+            .then(() => fetchPosts())
             .catch(error => console.error("Error deleting post:", error));
         }
     </script>

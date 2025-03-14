@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Register</title>
     <style>
         * {
             margin: 0;
@@ -45,7 +45,7 @@
         }
 
         button {
-            background: rgb(85, 85, 103);
+            background: rgb(138, 138, 171);
             color: white;
             border: none;
             padding: 12px;
@@ -58,7 +58,7 @@
         }
 
         button:hover {
-            background: rgb(38, 38, 43);
+            background: rgb(42, 42, 43);
         }
 
         p {
@@ -66,7 +66,7 @@
         }
 
         a {
-            color: rgb(63, 63, 72);
+            color: rgb(25, 25, 31);
             text-decoration: none;
             font-weight: bold;
         }
@@ -90,14 +90,15 @@
 </head>
 <body>
     <div class="container">
-        <h2>Login</h2>
-        <form action="/login" method="POST">
+        <h2>Register</h2>
+        <form action="/register" method="POST">
+            <input type="text" name="name" placeholder="Name" required>
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
+            <button type="submit">Sign Up</button>
         </form>
-        <p>Don't have an account? <a href="/register">Sign Up</a></p>
-
+        </form>
+        <p>Already have an account? <a href="/login">Login</a></p>
     </div>
 </body>
 </html>
