@@ -30,7 +30,7 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use(
     session({
-        secret: "SSV2005",
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
     })
@@ -241,7 +241,7 @@ app.get("/fetch-all-posts", async (req, res) => {
         `);
         res.json(result.rows);
     } catch (err) {
-        console.error("❌ Error fetching posts:", err);
+        console.error(" Error fetching posts:", err);
         res.status(500).send("Error fetching posts");
     }
 });
