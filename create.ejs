@@ -11,21 +11,6 @@
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-        #postList {
-    color: black; 
-    list-style-type: none;
-    padding: 0;
-}
-
-#postList li {
-    background: white;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: bold;
-}
-
 
         body {
             display: flex;
@@ -39,7 +24,7 @@
             align-items: center;
             width: 100%;
             padding: 20px 15px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(41, 40, 40, 0.3);
             backdrop-filter: blur(10px);
             position: fixed;
             top: 0;
@@ -49,23 +34,11 @@
         }
 
         .title {
-            font-size: 2vw;
+            font-size: 2.5vw;
             font-weight: 700;
             text-decoration: none;
-            color: rgb(2, 2, 2);
-            text-shadow: 0px 0px 15px rgba(97, 95, 95, 0.8);
+            color: black;
             text-align: center;
-        }
-
-        .toggle-btn {
-            font-size: 24px;
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            display: none;
-            position: absolute;
-            left: 15px;
         }
 
         .sidebar {
@@ -74,9 +47,9 @@
             background: gray;
             position: fixed;
             top: 0;
-            left: 0;
+            left: -250px; 
             padding-top: 80px;
-            transition: transform 0.3s ease-in-out;
+            transition: left 0.3s ease-in-out;
         }
 
         .sidebar a {
@@ -91,10 +64,23 @@
             background: #1f1f1f;
         }
 
+        .sidebar.active {
+            left: 0; 
+        }
+
+        .toggle-btn {
+            font-size: 24px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            margin-left: 15px;
+        }
+
         .main-content {
             margin-left: 260px;
             padding: 100px 20px;
-            color: rgb(249, 243, 243);
+            color: black;
         }
 
         .content-container {
@@ -102,7 +88,6 @@
             gap: 20px;
             flex-wrap: wrap;
             justify-content: center;
-            background-color: black;
             padding: 20px;
             border-radius: 10px;
         }
@@ -110,26 +95,32 @@
         .section {
             flex: 1;
             min-width: 400px;
+            max-width: 600px;
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
-
 
         .form-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
+            align-items: center;
         }
 
         .form-container label {
             font-weight: bold;
+            text-align: left;
+            width: 100%;
+            color: black;
         }
 
         .form-container input,
         .form-container textarea {
             width: 100%;
+            max-width: 500px;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -149,53 +140,115 @@
             cursor: pointer;
             border-radius: 5px;
             font-size: 16px;
+            width: 100%;
+            max-width: 500px;
         }
 
         .btn:hover {
             background: #333;
         }
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: gray;
+    position: fixed;
+    top: 0;
+    left: -250px;  
+    padding-top: 80px;
+    transition: left 0.3s ease-in-out;
+}
 
-        .post-list {
-            list-style: none;
-            padding: 0;
-        }
+.sidebar a {
+    display: block;
+    padding: 15px;
+    color: white;
+    text-decoration: none;
+    transition: 0.3s;
+}
 
-        .post-list li {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
+.sidebar a:hover {
+    background: #1f1f1f;
+}
 
-        .delete-btn {
-            background: rgb(48, 45, 45);
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            position: absolute;
-            right: 10px;
-            top: 10px;
-        }
+.sidebar.active {
+    left: 0;  
+}
 
-        .delete-btn:hover {
-            background: darkred;
-        }
+@media screen and (min-width: 768px) {
+    .sidebar {
+        left: 0;  
+    }
+}
+
+.toggle-btn {
+    font-size: 24px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-left: 15px;
+    position: absolute;
+    left: 15px;
+    top: 20px; 
+    z-index: 1100;
+}
+
+.main-content {
+    margin-left: 0;
+    padding: 100px 20px;
+}
+.post-list {
+    list-style: none;
+    padding: 0;
+}
+
+.post-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.post-content {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+
+.delete-btn {
+    background: darkred;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.delete-btn:hover {
+    background: rgb(64, 60, 60);
+}
+
+
+@media screen and (min-width: 768px) {
+    .main-content {
+        margin-left: 260px;
+    }
+}
+
 
         @media screen and (max-width: 768px) {
-            .toggle-btn {
-                display: block;
-            }
-
             .sidebar {
-                transform: translateX(-100%);
+                left: -250px; 
             }
 
             .sidebar.active {
-                transform: translateX(0);
+                left: 0; 
             }
 
             .main-content {
@@ -236,22 +289,22 @@
             <div class="section">
                 <h2 style="color: black;">Create New Post</h2>
                 <form class="form-container" action="/submit" method="POST">
-                    <label for="title"style="color: black;">Project Title:</label>
+                    <label for="title">Project Title:</label>
                     <input type="text" id="title" name="title" placeholder="Enter title" required>
 
-                    <label for="name"style="color: black;">Name:</label>
+                    <label for="name">Name:</label>
                     <input type="text" id="name" name="name" placeholder="Enter your name" required>
 
-                    <label for="date"style="color: black;">Date of post:</label>
+                    <label for="date">Date of post:</label>
                     <input type="date" id="date" name="date" required>
 
-                    <label for="contact"style="color: black;">Contact Number:</label>
+                    <label for="contact">Contact Number:</label>
                     <input type="text" id="contact" name="contact" placeholder="Enter contact number" required>
 
-                    <label for="timeline"style="color: black;">Project Timeline:</label>
+                    <label for="timeline">Project Timeline:</label>
                     <input type="text" id="timeline" name="timeline" placeholder="Enter project timeline" required>
 
-                    <label for="description"style="color: black;">Project Description:</label>
+                    <label for="description">Project Description:</label>
                     <textarea id="description" name="description" placeholder="Enter project details" required></textarea>
 
                     <button type="submit" class="btn">Post</button>
@@ -267,7 +320,8 @@
 
     <script>
         function toggleSidebar() {
-            document.getElementById("sidebar").classList.toggle("active");
+            let sidebar = document.getElementById("sidebar");
+            sidebar.classList.toggle("active");  
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -278,22 +332,25 @@
     fetch("/fetch-posts")
         .then(response => response.json())
         .then(posts => {
+            console.log("Fetched posts:", posts);
             const postList = document.getElementById("postList");
             postList.innerHTML = ""; 
 
             posts.forEach(post => {
                 const li = document.createElement("li");
+                li.classList.add("post-item");  
+
                 li.innerHTML = `
-                    <strong>${post.title}</strong> 
-                    <button class="btn delete-btn" onclick="deletePost(${post.id})">Delete</button>
-                    <hr>
+                    <div class="post-content">
+                        <strong>${post.title}</strong>  
+                        <button class="delete-btn" onclick="deletePost('${post.id}')">Delete</button>
+                    </div>
                 `;
                 postList.appendChild(li);
             });
         })
         .catch(error => console.error("Error fetching posts:", error));
 }
-
 
         function deletePost(postId) {
             fetch("/delete-post", {
@@ -304,7 +361,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    fetchPosts(); 
+                    fetchPosts();
                 } else {
                     alert("Failed to delete post");
                 }
