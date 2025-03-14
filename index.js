@@ -156,6 +156,28 @@ app.post("/create-post", ensureAuthenticated, async (req, res) => {
         res.status(500).send("Error creating post.");
     }
 });
+app.get("/fetch-posts", ensureAuthenticated, async (req, res) => {
+    try {
+        console.log(" Fetching posts for user:", req.session.user.id);
+        
+        const result = await client.query(
+            "SELECT id, title, date, name, contact, timeline, description FROM posts WHERE user_id = $1 ORDER BY id DESC",
+            [req.session.user.id]
+        );
+
+        if (result.rows.length === 0) {
+            console.log(" No posts found for user:", req.session.user.id);
+        } else {
+            console.log(" Posts fetched:", result.rows);
+        }
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error(" Error fetching posts:", err);
+        res.status(500).send("Error fetching posts.");
+    }
+});
+
 
 app.post("/delete-post", ensureAuthenticated, async (req, res) => {
     const { postId } = req.body;
