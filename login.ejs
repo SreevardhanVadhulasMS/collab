@@ -99,5 +99,26 @@
         <p>Don't have an account? <a href="/register">Sign Up</a></p>
 
     </div>
+    <script>
+        document.querySelector("form").addEventListener("submit", function(event) {
+            event.preventDefault(); 
+    
+            fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams(new FormData(document.querySelector("form")))
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirectUrl; 
+                } else {
+                    alert("Invalid credentials!"); 
+                }
+            })
+            .catch(error => console.error("Error during login:", error));
+        });
+    </script>
+    
 </body>
 </html>

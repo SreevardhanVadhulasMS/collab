@@ -12,6 +12,7 @@ const { Client } = pkg;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 const client = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -32,7 +33,9 @@ app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/js", express.static(path.join(__dirname, "js")));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
+
 const PgSession = connectPgSimple(session);
+
 app.use(
     session({
         store: new PgSession({
@@ -42,9 +45,20 @@ app.use(
         secret: process.env.SESSION_SECRET || "default_secret",
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: process.env.NODE_ENV === "production", maxAge: 1000 * 60 * 60 * 24 } 
+        cookie: {
+            secure: process.env.NODE_ENV === "production", 
+            sameSite: "None",
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000 
+        }
     })
 );
+app.use((req, res, next) => {
+    console.log("Current session:", req.session);
+    next();
+});
+
+
 
 const ensureAuthenticated = (req, res, next) => {
     if (req.session.user) return next();
@@ -72,24 +86,26 @@ app.post("/register", async (req, res) => {
 
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).send("All fields are required.");
 
     try {
         const result = await client.query("SELECT * FROM users WHERE email = $1", [email]);
-        if (result.rows.length === 0) return res.status(401).send("Invalid credentials.");
+        if (result.rows.length === 0) return res.status(401).json({ error: "Invalid credentials" });
 
         const user = result.rows[0];
         const passwordMatch = await bcrypt.compare(password, user.password);
 
-        if (!passwordMatch) return res.status(401).send("Invalid credentials.");
+        if (!passwordMatch) return res.status(401).json({ error: "Invalid credentials" });
 
         req.session.user = { id: user.id, name: user.name, email: user.email };
-        res.redirect("/home");
+        console.log(" Login Successful. Session Data:", req.session.user);
+
+        res.json({ success: true, redirectUrl: "/home" }); 
     } catch (err) {
         console.error(" Error logging in:", err);
-        res.status(500).send("Error logging in.");
+        res.status(500).json({ error: "Error logging in" });
     }
 });
+
 
 app.get("/home", ensureAuthenticated, (req, res) => {
     res.render("home", { user: req.session.user });
