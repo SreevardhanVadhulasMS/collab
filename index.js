@@ -36,6 +36,8 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 
 const PgSession = connectPgSimple(session);
 
+
+
 app.use(
     session({
         store: new PgSession({
@@ -44,9 +46,15 @@ app.use(
         secret: process.env.SESSION_SECRET || "default_secret",
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: process.env.NODE_ENV === "production", maxAge: 1000 * 60 * 60 * 24 }
+        cookie: {
+            secure: process.env.NODE_ENV === "production", 
+            httpOnly: true,  
+            sameSite: "strict",  
+            maxAge: 1000 * 60 * 60 * 24, 
+        },
     })
 );
+
 app.use((req, res, next) => {
     console.log("Current session:", req.session);
     next();
@@ -80,25 +88,33 @@ app.post("/register", async (req, res) => {
 
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
+    console.log("🔍 Login attempt:", email); 
 
     try {
         const result = await client.query("SELECT * FROM users WHERE email = $1", [email]);
-        if (result.rows.length === 0) return res.status(401).json({ error: "Invalid credentials" });
+        if (result.rows.length === 0) {
+            console.log(" No user found");
+            return res.status(401).json({ success: false, message: "Invalid credentials." });
+        }
 
         const user = result.rows[0];
         const passwordMatch = await bcrypt.compare(password, user.password);
 
-        if (!passwordMatch) return res.status(401).json({ error: "Invalid credentials" });
+        if (!passwordMatch) {
+            console.log(" Password mismatch");
+            return res.status(401).json({ success: false, message: "Invalid credentials." });
+        }
 
         req.session.user = { id: user.id, name: user.name, email: user.email };
-        console.log(" Login Successful. Session Data:", req.session.user);
+        console.log(" User logged in:", req.session.user);
 
-        res.json({ success: true, redirectUrl: "/home" }); 
+        res.json({ success: true, redirectUrl: "/home" });
     } catch (err) {
         console.error(" Error logging in:", err);
-        res.status(500).json({ error: "Error logging in" });
+        res.status(500).json({ success: false, message: "Error logging in." });
     }
 });
+
 
 
 app.get("/home", ensureAuthenticated, (req, res) => {
@@ -178,5 +194,10 @@ app.post("/delete-post", ensureAuthenticated, async (req, res) => {
 app.get("/logout", (req, res) => {
     req.session.destroy(() => res.redirect("/"));
 });
+app.get("/session-check", (req, res) => {
+    console.log(" Checking session:", req.session);
+    res.json(req.session);
+});
+
 
 app.listen(PORT, () => console.log(` Server running on port: ${PORT}`));
