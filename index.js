@@ -10,6 +10,7 @@ import pkg from "pg";
 import dotenv from "dotenv";
 import pgSession from "connect-pg-simple";
 
+
 dotenv.config();
 
 const { Client } = pkg;
@@ -182,3 +183,5 @@ app.get("/fetch-all-posts", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port: ${PORT}`));
+console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
+console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET);
