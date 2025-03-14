@@ -118,19 +118,25 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.get("/fetch-posts", ensureAuthenticated, async (req, res) => {
+app.get("/fetch-all-posts", async (req, res) => {
     try {
-        console.log("Fetching posts for user:", req.session.user.id);
         const result = await client.query(
-            "SELECT id, title, date, name, contact, timeline, description FROM posts WHERE user_id = $1 ORDER BY id DESC",
-            [req.session.user.id]
+            `SELECT posts.id, posts.title, posts.date, posts.name, 
+                    posts.contact, posts.timeline, posts.description, 
+                    users.name AS posted_by 
+             FROM posts 
+             INNER JOIN users ON posts.user_id = users.id 
+             ORDER BY posts.id DESC`
         );
+
+        console.log("All posts fetched:", result.rows);
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching posts:", err);
-        res.status(500).send("Error fetching posts.");
+        console.error(" Error fetching all posts:", err.message);
+        res.status(500).json({ error: "Error fetching posts", details: err.message });
     }
 });
+
 
 app.post("/create-post", ensureAuthenticated, async (req, res) => {
     const { title, name, date, contact, timeline, description } = req.body;
